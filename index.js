@@ -56,6 +56,16 @@ app.get('/api/persons/:id', (req, res) => {
         res.status(404).send('Sorry, that user is not in the database.')
 })
 
+app.delete('/api/persons/:id', (req, res) => {
+    const id = Number(req.params.id)
+    const person = people.find((p) => p.id === id)
+    if (person){
+        people = people.filter((p)=> p.id != id)
+        res.send("Deleted "+id)    
+    }else
+        res.status(404).send('Sorry, that user is not in the database.')
+})
+
 app.get('/info', (req, res) => {
     res.send(`
     <div>
