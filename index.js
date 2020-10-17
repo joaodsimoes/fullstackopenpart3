@@ -12,7 +12,6 @@ app.use(express.static('build'))
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
 }
-
 app.use(express.json())
 morgan.token('post_data', function (req, res) { return JSON.stringify(req.body) })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms  :post_data'))
@@ -45,12 +44,12 @@ app.put('/api/persons/:id', (request, response, next) => {
         number: body.number,
     }
 
-    Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    Person.findByIdAndUpdate(request.params.id, person, { new: true, runValidators: true, context: 'query' })
         .then(updatedNote => {
             if (updatedNote) {
                 response.json(updatedNote)
             } else {
-                response.status(404).end()
+                response.status(404).json(`Could not update ${person.name}'s information because he has since been removed from the phonebook.`).end()
             }
         })
         .catch(error => next(error))
@@ -76,12 +75,9 @@ app.get('/info', (req, res) => {
 })
 
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const name = req.body.name
     const number = req.body.number
-
-    if (!name || !number)
-        return res.status(400).json({ error: `Name and number are mandatory fields. Name recieved was: ${name} and number recieved was: ${number}` })
 
     const entry = new Person({
         name: name,
@@ -91,6 +87,7 @@ app.post('/api/persons', (req, res) => {
     entry.save()
         .then(savedEntry =>
             res.json(savedEntry))
+        .catch(error => next(error))
 })
 
 //MIDDLEWARE
@@ -102,6 +99,11 @@ const errorHandler = (error, request, response, next) => {
 
     if (error.name === 'CastError') {
         return response.status(400).send({ error: 'malformatted id' })
+    }
+    
+
+    if(error.name === 'ValidationError'){
+        return response.status(400).send(error.message)
     }
 
     next(error)
