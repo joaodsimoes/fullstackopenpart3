@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 require('dotenv').config()
 const express = require('express')
 const Person = require('./models/person')
@@ -10,7 +11,7 @@ const app = express()
 app.use(cors())
 app.use(express.static('build'))
 const unknownEndpoint = (request, response) => {
-    response.status(404).send({ error: 'unknown endpoint' })
+  response.status(404).send({ error: 'unknown endpoint' })
 }
 app.use(express.json())
 morgan.token('post_data', function (req, res) { return JSON.stringify(req.body) })
@@ -19,52 +20,52 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms  :
 
 
 app.get('/', (req, res) => {
-    res.send('<h1>Welcome to phonebook api!</h1>')
+  res.send('<h1>Welcome to phonebook api!</h1>')
 })
 
 app.get('/api/persons', (req, res) => {
-    Person.find({}).then(people => res.json(people))
+  Person.find({}).then(people => res.json(people))
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
-    Person.findById(req.params.id).then(person => {
-        if (person) {
-            res.json(person)
-        } else {
-            res.status(404).end()
-        }
-    }).catch(error => next(error))
+  Person.findById(req.params.id).then(person => {
+    if (person) {
+      res.json(person)
+    } else {
+      res.status(404).end()
+    }
+  }).catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
-    const body = request.body
+  const body = request.body
 
-    const person = {
-        name: body.name,
-        number: body.number,
-    }
+  const person = {
+    name: body.name,
+    number: body.number,
+  }
 
-    Person.findByIdAndUpdate(request.params.id, person, { new: true, runValidators: true, context: 'query' })
-        .then(updatedNote => {
-            if (updatedNote) {
-                response.json(updatedNote)
-            } else {
-                response.status(404).json(`Could not update ${person.name}'s information because he has since been removed from the phonebook.`).end()
-            }
-        })
-        .catch(error => next(error))
+  Person.findByIdAndUpdate(request.params.id, person, { new: true, runValidators: true, context: 'query' })
+    .then(updatedNote => {
+      if (updatedNote) {
+        response.json(updatedNote)
+      } else {
+        response.status(404).json(`Could not update ${person.name}'s information because he has since been removed from the phonebook.`).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
-    Person.findByIdAndRemove(req.params.id)
-        .then(result => {
-            res.status(204).end()
-        }).catch(error => next(error))
+  Person.findByIdAndRemove(req.params.id)
+    .then(result => {
+      res.status(204).end()
+    }).catch(error => next(error))
 })
 
 app.get('/info', (req, res) => {
-    Person.find({}).then(people =>
-        res.send(`
+  Person.find({}).then(people =>
+    res.send(`
     <div>
         <p>Phonebook has info for ${people.length} people </p>
         <p>${new Date()}</p> 
@@ -76,18 +77,18 @@ app.get('/info', (req, res) => {
 
 
 app.post('/api/persons', (req, res, next) => {
-    const name = req.body.name
-    const number = req.body.number
+  const name = req.body.name
+  const number = req.body.number
 
-    const entry = new Person({
-        name: name,
-        number: number,
-    })
+  const entry = new Person({
+    name: name,
+    number: number,
+  })
 
-    entry.save()
-        .then(savedEntry =>
-            res.json(savedEntry))
-        .catch(error => next(error))
+  entry.save()
+    .then(savedEntry =>
+      res.json(savedEntry))
+    .catch(error => next(error))
 })
 
 //MIDDLEWARE
@@ -95,18 +96,18 @@ app.use(unknownEndpoint)
 
 
 const errorHandler = (error, request, response, next) => {
-    console.error(error.message)
+  console.error(error.message)
 
-    if (error.name === 'CastError') {
-        return response.status(400).send({ error: 'malformatted id' })
-    }
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
     
 
-    if(error.name === 'ValidationError'){
-        return response.status(400).send(error.message)
-    }
+  if(error.name === 'ValidationError'){
+    return response.status(400).send(error.message)
+  }
 
-    next(error)
+  next(error)
 }
 
 app.use(errorHandler)
@@ -114,5 +115,5 @@ app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+  console.log(`Server running on port ${PORT}`)
 })
